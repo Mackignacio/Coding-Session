@@ -184,15 +184,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return FlatButton(
       child: Text(title),
       onPressed: () {
-        TodoModel newTodo = TodoModel(
-          title: titleController.text,
-          completed: isEditing ? todo.completed : false,
-          id: isEditing ? todo.id : null,
-        );
+        if (title.toLowerCase() != "cancel") {
+          TodoModel newTodo = TodoModel(
+            title: titleController.text,
+            completed: isEditing ? todo.completed : false,
+            id: isEditing ? todo.id : null,
+          );
 
-        setState(() {
-          isEditing ? _updateItem(newTodo) : _addItem(newTodo);
-        });
+          setState(() {
+            isEditing ? _updateItem(newTodo) : _addItem(newTodo);
+          });
+        }
 
         titleController.text = "";
         Navigator.of(context).pop();
