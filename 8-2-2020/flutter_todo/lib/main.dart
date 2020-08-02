@@ -31,7 +31,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool checkBox = false;
   final titleController = TextEditingController();
   final TodoService todoService = TodoService();
 
@@ -76,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              _checkBox(todo.completed),
+              _checkBox(todo),
               _itemText(todo.title),
             ],
           ),
@@ -121,11 +120,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _checkBox(bool completed) {
+  Widget _checkBox(TodoModel todo) {
     return Checkbox(
-      value: completed,
+      value: todo.completed,
       onChanged: (bool value) {
-        print(value);
+        TodoModel newTodo = TodoModel(
+          completed: value,
+          title: todo.title,
+          id: todo.id,
+        );
+
+        setState(() {
+          todoService.patch(newTodo).catchError((err) => _toastBuilder(err));
+        });
       },
     );
   }
@@ -162,46 +169,29 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<Widget> _alertDialogActions(bool isEditing, TodoModel todo) {
-    TodoModel item = todo != null
-        ? todo
-        : TodoModel(
-            title: titleController.text,
-            completed: false,
-          );
-
-    if (isEditing) {
-      titleController.text = todo.title;
-    }
-
     Widget button = isEditing
-        ? _actionButton(
-            "Update",
-            addItem: null,
-            updateItem: () => TodoModel(
-              title: titleController.text,
-              completed: todo.completed,
-              id: todo.id,
-            ),
-            todo: todo,
-          )
-        : _actionButton("Add", addItem: _addItem, todo: item);
+        ? _actionButton("Update", isEditing: isEditing, todo: todo)
+        : _actionButton("Add");
 
     return <Widget>[_actionButton("Cancel"), button];
   }
 
-  Widget _actionButton(String title,
-      {Function addItem, Function updateItem, TodoModel todo}) {
+  Widget _actionButton(String title, {bool isEditing = false, TodoModel todo}) {
+    if (isEditing) {
+      titleController.text = todo.title;
+    }
+
     return FlatButton(
       child: Text(title),
       onPressed: () {
-        setState(() {
-          if (addItem != null) {
-            addItem(todo);
-          }
+        TodoModel newTodo = TodoModel(
+          title: titleController.text,
+          completed: isEditing ? todo.completed : false,
+          id: isEditing ? todo.id : null,
+        );
 
-          if (updateItem != null) {
-            _updateItem(updateItem());
-          }
+        setState(() {
+          isEditing ? _updateItem(newTodo) : _addItem(newTodo);
         });
 
         titleController.text = "";
