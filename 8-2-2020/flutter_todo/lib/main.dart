@@ -168,7 +168,11 @@ class _MyHomePageState extends State<MyHomePage> {
             title: titleController.text,
             completed: false,
           );
-    titleController.text = todo.title;
+
+    if (isEditing) {
+      titleController.text = todo.title;
+    }
+
     Widget button = isEditing
         ? _actionButton(
             "Update",
